@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: timeseries-postgres
+    environment:
+      POSTGRES_USER: timeseries
+      POSTGRES_PASSWORD: timeseries_password
+      POSTGRES_DB: timeseries_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U timeseries"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - timeseries-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: timeseries-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass redis_password
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - timeseries-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: timeseries-api
+    environment:
+      DATABASE_URL: postgresql://timeseries:timeseries_password@postgres:5432/timeseries_db
+      REDIS_URL: redis://:redis_password@redis:6379
+      RUST_LOG: info
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - timeseries-network
+    volumes:
+      - ./crates/api/config.toml:/app/config.toml
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: timeseries-metabase
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: postgres
+      MB_DB_PORT: 5432
+      MB_DB_USER: postgres
+      MB_DB_PASS: postgres
+      MB_DB_HOST: postgres15
+    ports:
+      - "3200:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - timeseries-network
+    volumes:
+      - metabase_data:/metabase-data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3200/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  browserless:
+    image: browserless/chrome:latest
+    container_name: timeseries-browserless
+    environment:
+      MAX_CONCURRENT_SESSIONS: 10
+      CONNECTION_TIMEOUT: 600000
+      MAX_QUEUE_LENGTH: 20
+      PREBOOT_CHROME: "true"
+      ENABLE_CORS: "true"
+    ports:
+      - "3300:3000"
+    networks:
+      - timeseries-network
+    shm_size: 2gb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3300/pressure"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+  redis_data:
+  metabase_data:
+
+networks:
+  timeseries-network:
+    driver: bridge

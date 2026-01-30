@@ -1,0 +1,52 @@
+[package]
+name = "timeseries_service"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tracing = {workspace = true}
+anyhow = { workspace = true }
+sqlx = {workspace = true}
+tracing-subscriber = { workspace = true, features = ["env-filter", "fmt"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+simd-json = { workspace = true, features = ["serde_impl"] }
+strum = { workspace = true, features = ["derive"] }
+strum_macros = { workspace = true }
+figment = { workspace = true, features = ["toml", "env"] }
+uuid = { workspace = true }
+
+
+[workspace.dependencies]
+uuid = "1.20.0"
+sqlx = {version = "0.8.6", features = [
+    "runtime-tokio-native-tls",
+    "macros",
+    "postgres",
+    "uuid",
+    "chrono",
+]}
+hex = "0.4.3"
+tower-http = { version = "0.6.8", features = [
+    "add-extension",
+    "cors",
+    "trace",
+] }
+anyhow = "1.0.100"
+clap = "4.5.54"
+axum = { version = "0.8.8", features = ["macros"] }
+serde = "1.0.228"
+tokio = { version = "1.49.0", features = ["full"] }
+tracing = "0.1.44"
+tracing-subscriber = "0.3.22"
+serde_json = "1.0"
+
+
+simd-json = { version = "0.17.0", features = ["serde_impl"] }
+strum = { version = "0.27.2", features = ["derive"] }
+strum_macros = "0.27.2"
+figment = { version = "0.10.19", features = ["toml", "env"] }
+
+
+[workspace]
+members = ["crates/http"]

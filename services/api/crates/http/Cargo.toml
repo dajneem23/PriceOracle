@@ -1,0 +1,21 @@
+[package]
+name = "http"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { workspace = true }
+clap = { workspace = true }
+tokio = { workspace = true }
+timeseries_service = { path = "../.." }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter", "fmt"] }
+serde_json = {workspace = true}
+serde = { workspace = true, features = ["derive"] }
+tower-http = { workspace = true }
+figment = {workspace = true}
+strum = { workspace = true }
+anyhow = { workspace = true }
+hex = { workspace = true }
+
+sqlx = { workspace = true }

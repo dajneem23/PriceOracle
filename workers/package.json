@@ -1,0 +1,43 @@
+{
+  "name": "workers",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "dajneem23",
+  "type": "commonjs",
+  "main": "main.js",
+  "scripts": {
+    "crawl:vcb": "node vcb.worker.js",
+    "crawl:yahoo": "node yahoo.worker.js",
+    "crawl:reuters": "node reuters.worker.js",
+    "crawl:xe": "node xe.worker.js",
+    "crawl:all": "npm run crawl:vcb && npm run crawl:yahoo && npm run crawl:reuters && npm run crawl:xe",
+    "import:vcb": "node vcb.importer.js",
+    "import:yahoo": "node yahoo.importer.js",
+    "import:reuters": "node reuters.importer.js",
+    "import: xe": "node xe.importer.js",
+    "import:all": "npm run import:vcb && npm run import:yahoo && npm run import:reuters && npm run import:xe",
+    "import:vcb:all": "node vcb.importer.js all",
+    "import:yahoo:all": "node yahoo.importer.js all",
+    "import:reuters:all": "node reuters.importer.js all",
+    "import:xe:all": "node xe.importer.js all",
+    "jobs": "node cli/jobs.js",
+    "jobs:add": "node cli/jobs.js add",
+    "jobs:list": "node cli/jobs.js list",
+    "jobs:clear": "node cli/jobs.js clear",
+    "cron": "node cron.js"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.58.0",
+    "bullmq": "^5.67.2",
+    "dotenv": "^17.2.3",
+    "fast-xml-parser": "^4.5.0",
+    "ioredis": "^5.9.2",
+    "node-cron": "^3.0.3",
+    "pg": "^8.13.1",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.1.3",
+    "puppeteer-core": "^24.36.1",
+    "redis": "^5.10.0"
+  }
+}
