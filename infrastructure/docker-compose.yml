@@ -39,7 +39,7 @@ services:
 
   api:
     build:
-      context: .
+      context: ../services/api
       dockerfile: Dockerfile
     container_name: timeseries-api
     environment:
@@ -56,7 +56,8 @@ services:
     networks:
       - timeseries-network
     volumes:
-      - ./crates/api/config.toml:/app/config.toml
+      - ../services/api/crates/api/config.toml:/app/config.toml
+    restart: unless-stopped
 
   metabase:
     image: metabase/metabase:latest
@@ -104,10 +105,56 @@ services:
       timeout: 10s
       retries: 3
 
+  worker-main:
+    build:
+      context: ../workers
+      dockerfile: Dockerfile.main
+    container_name: timeseries-worker-main
+    environment:
+      REDIS_URL: redis://:redis_password@redis:6379
+      DATABASE_URL: postgresql://timeseries:timeseries_password@postgres:5432/timeseries_db
+      NODE_ENV: production
+      LOG_LEVEL: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      browserless:
+        condition: service_healthy
+    networks:
+      - timeseries-network
+    volumes:
+      - worker_logs:/app/logs
+      - worker_data:/app/data
+    restart: unless-stopped
+
+  worker-cron:
+    build:
+      context: ../workers
+      dockerfile: Dockerfile.cron
+    container_name: timeseries-worker-cron
+    environment:
+      REDIS_URL: redis://:redis_password@redis:6379
+      DATABASE_URL: postgresql://timeseries:timeseries_password@postgres:5432/timeseries_db
+      NODE_ENV: production
+      LOG_LEVEL: info
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - timeseries-network
+    volumes:
+      - worker_logs:/app/logs
+      - worker_data:/app/data
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
   metabase_data:
+  worker_logs:
+  worker_data:
 
 networks:
   timeseries-network:
