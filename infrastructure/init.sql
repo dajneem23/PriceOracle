@@ -12,6 +12,8 @@ CREATE TABLE currency_pairs (
     quote_currency TEXT NOT NULL -- 'VND'
 );
 
+-- Enable TimescaleDB extension
+CREATE EXTENSION IF NOT EXISTS timescaledb;
 -- 2. The Hypertable (TimescaleDB)
 CREATE TABLE fx_ticks (
     time TIMESTAMPTZ NOT NULL,

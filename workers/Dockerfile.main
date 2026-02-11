@@ -1,17 +1,11 @@
-FROM node:20-alpine
+FROM node:20-bookworm-slim
 
-# Install dependencies for Playwright and Chromium
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
+# Install Playwright dependencies and Chromium
+RUN apt-get update && apt-get install -y \
     ca-certificates \
-    ttf-freefont
-
-# Set Playwright to use installed Chromium
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
-    PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    wget \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
 WORKDIR /app
@@ -21,6 +15,9 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm ci --only=production
+
+# Install Playwright Chromium (and required deps)
+RUN npx playwright install --with-deps chromium
 
 # Copy application files
 COPY . .

@@ -1,5 +1,5 @@
 # Build stage
-FROM rust:1.83-slim as builder
+FROM rust:1.83-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
@@ -18,8 +18,11 @@ COPY rustfmt.toml clippy.toml deny.toml ./
 COPY src ./src
 COPY crates ./crates
 
+# Install nightly toolchain for edition2024
+RUN rustup toolchain install nightly --profile minimal && rustup default nightly
+
 # Build the application
-RUN cargo build --release -p api
+RUN cargo build --release -p timeseries_service
 
 # Runtime stage
 FROM debian:bookworm-slim
@@ -33,10 +36,10 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy the binary from builder
-COPY --from=builder /app/target/release/api /app/api
+COPY --from=builder /app/target/release/timeseries_service /app/api
 
 # Copy configuration
-COPY crates/api/config.toml /app/config.toml
+COPY crates/http/config.toml /app/config.toml
 
 # Expose the port
 EXPOSE 8082

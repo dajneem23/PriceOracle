@@ -44,7 +44,7 @@ const CONNECTION_OPTIONS = {
 const DEFAULT_WORKER_OPTIONS = {
     ...CONNECTION_OPTIONS,
     lockDuration: 300_000, // 5 minutes
-    concurrency: 5,
+    concurrency: 1,
     removeOnComplete: true,
     removeOnFail: false,
     useWorkerThreads: true,

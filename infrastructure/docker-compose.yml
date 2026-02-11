@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: timescale/timescaledb:2.13.1-pg16
     container_name: timeseries-postgres
     environment:
       POSTGRES_USER: timeseries
@@ -56,7 +56,7 @@ services:
     networks:
       - timeseries-network
     volumes:
-      - ../services/api/crates/api/config.toml:/app/config.toml
+      - ../services/api/crates/http/config.toml:/app/config.toml
     restart: unless-stopped
 
   metabase:
@@ -64,11 +64,11 @@ services:
     container_name: timeseries-metabase
     environment:
       MB_DB_TYPE: postgres
-      MB_DB_DBNAME: postgres
+      MB_DB_DBNAME: timeseries_db
       MB_DB_PORT: 5432
-      MB_DB_USER: postgres
-      MB_DB_PASS: postgres
-      MB_DB_HOST: postgres15
+      MB_DB_USER: timeseries
+      MB_DB_PASS: timeseries_password
+      MB_DB_HOST: postgres
     ports:
       - "3200:3000"
     depends_on:
@@ -115,6 +115,8 @@ services:
       DATABASE_URL: postgresql://timeseries:timeseries_password@postgres:5432/timeseries_db
       NODE_ENV: production
       LOG_LEVEL: info
+      ACTIVE_WORKERS: XE,VCB,YAHOO,REUTERS
+      #$BROWSERLESS_API_KEY: ${BROWSERLESS_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy
@@ -149,12 +151,32 @@ services:
       - worker_data:/app/data
     restart: unless-stopped
 
+  log-viewer:
+    image: filebrowser/filebrowser:s6
+    container_name: timeseries-log-viewer
+    environment:
+      FB_ROOT: /srv
+      FB_ADDRESS: 0.0.0.0
+      FB_PORT: 8080
+      FB_DATABASE: /config/filebrowser.db
+      FB_NOAUTH: "true"
+    ports:
+      - "8083:8080"
+    volumes:
+      - worker_logs:/srv/logs:ro
+      - worker_data:/srv/data:ro
+      - filebrowser_data_v2:/config
+    networks:
+      - timeseries-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
   metabase_data:
   worker_logs:
   worker_data:
+  filebrowser_data_v2:
 
 networks:
   timeseries-network:
