@@ -69,6 +69,8 @@ services:
       MB_DB_USER: timeseries
       MB_DB_PASS: timeseries_password
       MB_DB_HOST: postgres
+      MB_SITE_URL: https://price-oracle.sugoiweb3.uk/metabase
+      MB_APPLICATION_BASE_URL: /metabase
     ports:
       - "3200:3000"
     depends_on:
@@ -160,6 +162,7 @@ services:
       FB_PORT: 8080
       FB_DATABASE: /config/filebrowser.db
       FB_NOAUTH: "true"
+      FB_BASEURL: /logs
     ports:
       - "8083:8080"
     volumes:
